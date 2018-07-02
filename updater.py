@@ -31,7 +31,6 @@ class DCGANUpdater(chainer.training.StandardUpdater):
         )  # self.converter() is concat_example() また self.deviceでデータをgpuに送る
         x_real = Variable(x_real)
         x_real = (x_real - 127.5) / 127.5  # normalize image data
-
         xp = chainer.backends.cuda.get_array_module(
             x_real.data)  # return cupy or numpy based on type of x_real.data
         batch_size = len(batch)

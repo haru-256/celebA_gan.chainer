@@ -26,7 +26,7 @@ class Generator(chainer.Chain):
     ---------------------
     """
 
-    def __init__(self, n_hidden=100, bottom_width=4, ch=1024, wscale=0.02, ksize=6, pad=2):
+    def __init__(self, n_hidden=100, bottom_width=4, ch=1024, wscale=0.02, ksize=4, pad=2):
         super(Generator, self).__init__()
         self.n_hidden = n_hidden
         self.ch = ch
@@ -34,12 +34,12 @@ class Generator(chainer.Chain):
 
         with self.init_scope():
             w = chainer.initializers.Normal(wscale)  # initializers
-            # w = chainer.initializers.HeNormal()  # He initialize value
+
             self.l0 = L.Linear(
                 None,
                 self.ch * self.bottom_width * self.bottom_width,
                 initialW=w,
-                nobias=True)
+                nobias=True)  # (, 4*4*1024)
             self.dc1 = L.Deconvolution2D(
                 in_channels=None,
                 out_channels=ch // 2,
@@ -66,25 +66,16 @@ class Generator(chainer.Chain):
                 nobias=True)  # (, 128, 32, 32)
             self.dc4 = L.Deconvolution2D(
                 in_channels=None,
-                out_channels=ch // 16,
-                ksize=ksize,
-                stride=2,
-                pad=pad,
-                initialW=w,
-                nobias=True)  # (, 64, 64, 64)
-            self.dc5 = L.Deconvolution2D(
-                in_channels=None,
                 out_channels=3,
                 ksize=ksize,
                 stride=2,
                 pad=pad,
-                initialW=w)  # (, 3, 128, 128)
+                initialW=w)  # (, 3, 64, 64)
             self.bn0 = L.BatchNormalization(
                 self.ch * self.bottom_width * self.bottom_width)
             self.bn1 = L.BatchNormalization(ch // 2)
             self.bn2 = L.BatchNormalization(ch // 4)
             self.bn3 = L.BatchNormalization(ch // 8)
-            self.bn4 = L.BatchNormalization(ch // 16)
 
     def make_hidden(self, batchsize):
         """
@@ -114,8 +105,7 @@ class Generator(chainer.Chain):
         h = F.relu(self.bn1(self.dc1(h)))
         h = F.relu(self.bn2(self.dc2(h)))
         h = F.relu(self.bn3(self.dc3(h)))
-        h = F.relu(self.bn4(self.dc4(h)))
-        x = F.tanh(self.dc5(h))
+        x = F.tanh(self.dc4(h))
         return x
 
 

@@ -3,11 +3,7 @@ from chainer import training
 from chainer.training import extensions
 from chainer.datasets import ImageDataset
 from chainer.serializers import save_npz
-from dataset import FaceData
-
-# from discriminator import Discriminator  # Dence nobias
-from discriminator_md import Discriminator  # GAP nobias
-from generator import Generator
+from generator64 import Generator
 from updater import DCGANUpdater
 from visualize import out_generated_image
 # from accuracy_reporter import accuracy_report
@@ -56,8 +52,8 @@ if __name__ == '__main__':
                         choices=[0, 1], type=int, default=0)
     parser.add_argument('-ks', '--ksize',
                         help='specify ksize of generator by this number. any of following;'
-                        ' 4 or 6. defalut value is 6',
-                        choices=[4, 6], type=int, default=6)
+                        ' 4 or 6. defalut value is 4',
+                        choices=[4, 6], type=int, default=4)
     parser.add_argument('-dis', '--discriminator',
                         help='specify discriminator by this number. any of following;'
                         ' 0: original, 1: minibatch discriminatio, 2: feature matching, 3: GAP. defalut value is 0',
@@ -112,19 +108,19 @@ if __name__ == '__main__':
     # import discrimination & set up
     if args.discriminator == 0:
         print("# Original Discriminator")
-        from discriminator import Discriminator
+        from discriminator64 import Discriminator
         from updater import DCGANUpdater
         dis = Discriminator()
     elif args.discriminator == 1:
         print("# Discriminator applied Minibatch Discrimination")
         print('# Tensor shape is A x {0} x {1}'.format(
             args.tensor_shape[0], args.tensor_shape[1]))
-        from discriminator_md import Discriminator
+        from discriminator64_md import Discriminator
         from updater import DCGANUpdater
         dis = Discriminator(B=args.tensor_shape[0], C=args.tensor_shape[1])
     elif args.discriminator == 3:
         print("Discriminator applied GAP")
-        from discriminator_gap import Discriminator
+        from discriminator64_gap import Discriminator
         from updater import DCGANUpdater
         dis = Discriminator()
     """
@@ -148,15 +144,14 @@ if __name__ == '__main__':
     opt_dis = make_optimizer(dis)
 
     # Prepare Dataset
-    """
-    train = FaceData()
-    """
-    data_dir = pathlib.Path("./cropped_data_128_df")
+    data_dir = pathlib.Path("../data/CelebA/Img/center_cropped_resize_64/")
     abs_data_dir = data_dir.resolve()
-    print("data dir path:", abs_data_dir)
-    data_path = [path for path in abs_data_dir.glob("*/*.jpg")]
-    print("data length:", len(data_path))
+    print("# data dir path:", abs_data_dir)
+    data_path = [path for path in abs_data_dir.glob("*.jpg")]
+    print("# data length:", len(data_path))
     data = ImageDataset(paths=data_path)  # dtype=np.float32
+
+    # Prepare Iterator
     train_iter = chainer.iterators.SerialIterator(data, batch_size)
 
     # Set up a updater and trainer
@@ -192,7 +187,7 @@ if __name__ == '__main__':
             'epoch', 'iteration', 'gen/loss', 'dis/loss', 'elapsed_time',
         ]),
         trigger=display_interval)
-    trainer.extend(extensions.ProgressBar(update_interval=20))
+    trainer.extend(extensions.ProgressBar(update_interval=10))
     trainer.extend(
         out_generated_image(gen, dis, 5, 5, seed, out),
         trigger=display_interval)
