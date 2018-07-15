@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import chainer
 import chainer.backends.cuda
 from chainer import Variable
+from chainer.backends import cuda
 
 
 def combine_images(generated_images):
@@ -55,3 +56,44 @@ def out_generated_image(gen, dis, rows, cols, seed, dst):
         plt.close(fig)
 
     return make_image
+
+
+class Gamma_initializer(chainer.initializer.Initializer):
+    """
+    Return Normal initializer whose mean is "mean", std is "scale".
+
+    Parameters
+    ---------------
+
+    mean: float
+        mean of Normal distribution.
+
+    scale: float
+        standard deviation of Normal distribution.
+
+    dtype: Data type specifier.
+    """
+
+    def __init__(self, mean, scale, dtype=None):
+        self.mean = mean
+        self.scale = scale
+        super(Gamma_initializer, self).__init__(dtype=None)
+
+    def __call__(self, array):
+        """
+        Initializes given array.
+
+        Parameters
+        ------------
+
+        array: numpy.ndarray or cupy.ndarray
+            An array to be initialized by this initializer.
+        """
+        xp = cuda.get_array_module(array)
+        args = {'loc': self.mean, 'scale': self.scale, 'size': array.shape}
+        if xp is not np:
+            # Only CuPy supports dtype option
+            if self.dtype == np.float32 or self.dtype == np.float16:
+                # float16 is not supported in cuRAND
+                args['dtype'] = np.float32
+        array[...] = xp.random.normal(**args)
