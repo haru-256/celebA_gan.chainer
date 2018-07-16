@@ -24,7 +24,7 @@ def combine_images(generated_images):
     return combined_image
 
 
-def out_generated_image(gen, dis, rows, cols, seed, dst):
+def out_generated_image(gen, rows, cols, seed, dst):
     @chainer.training.make_extension()
     def make_image(trainer):
         n_images = rows * cols
