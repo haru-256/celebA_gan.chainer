@@ -18,20 +18,12 @@ class Discriminator(chainer.Chain):
             # register layer with variable
             self.c0 = L.Convolution2D(
                 in_channels=None,
-                out_channels=ch // 16,
+                out_channels=ch//8,
                 ksize=5,
                 stride=2,
                 pad=2,
-                initialW=w)  # (, 64, 64, 64)
-            self.c1 = L.Convolution2D(
-                in_channels=None,
-                out_channels=ch // 8,
-                ksize=5,
-                stride=2,
-                pad=2,
-                nobias=True,
                 initialW=w)  # (, 128, 32, 32)
-            self.c2 = L.Convolution2D(
+            self.c1 = L.Convolution2D(
                 in_channels=None,
                 out_channels=ch // 4,
                 ksize=5,
@@ -39,7 +31,7 @@ class Discriminator(chainer.Chain):
                 pad=2,
                 nobias=True,
                 initialW=w)  # (, 256, 16, 16)
-            self.c3 = L.Convolution2D(
+            self.c2 = L.Convolution2D(
                 in_channels=None,
                 out_channels=ch // 2,
                 ksize=5,
@@ -47,15 +39,15 @@ class Discriminator(chainer.Chain):
                 pad=2,
                 nobias=True,
                 initialW=w)  # (, 512, 8, 8)
-            self.c4 = L.Convolution2D(
+            self.c3 = L.Convolution2D(
                 in_channels=None,
                 out_channels=ch,
                 ksize=5,
                 stride=2,
                 pad=2,
                 nobias=True,
-                initialW=w)  # (, 1, 4, 4)
-            self.c5 = L.Convolution2D(
+                initialW=w)  # (, 1024, 4, 4)
+            self.c4 = L.Convolution2D(
                 in_channels=None,
                 out_channels=1,
                 ksize=1,
@@ -63,10 +55,9 @@ class Discriminator(chainer.Chain):
                 pad=0,
                 initialW=w)  # (, 1, 4, 4)
 
-            self.bn1 = L.BatchNormalization(size=ch // 8)
-            self.bn2 = L.BatchNormalization(size=ch // 4)
-            self.bn3 = L.BatchNormalization(size=ch // 2)
-            self.bn4 = L.BatchNormalization(size=ch)
+            self.bn1 = L.BatchNormalization(size=ch // 4)
+            self.bn2 = L.BatchNormalization(size=ch // 2)
+            self.bn3 = L.BatchNormalization(size=ch)
 
     def __call__(self, x):
         """
@@ -81,9 +72,8 @@ class Discriminator(chainer.Chain):
         h = F.leaky_relu(self.bn1(self.c1(h)))
         h = F.leaky_relu(self.bn2(self.c2(h)))
         h = F.leaky_relu(self.bn3(self.c3(h)))
-        h = F.leaky_relu(self.bn4(self.c4(h)))
         # mimcing global max pooling with average_pooling_2d
-        h = self.c5(h)
+        h = self.c4(h)
         logits = F.average_pooling_2d(h, ksize=(4, 4))
         logits = F.squeeze(logits, axis=(1, 2, 3))  # scalarにするため.必要なし?
 
@@ -97,7 +87,7 @@ if __name__ == "__main__":
 
     # batch データが1つでtrain:Trueの時にBNに通すとWarningが出る
     # https://github.com/chainer/chainer/pull/3996 のこと
-    z = np.random.uniform(-1, 1, (1, 3, 128, 128)).astype("f")
+    z = np.random.uniform(-1, 1, (1, 3, 64, 64)).astype("f")
     labels = np.array([1])
     model = Discriminator()
     img = model(Variable(z))

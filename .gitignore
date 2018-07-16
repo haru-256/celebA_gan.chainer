@@ -3,3 +3,5 @@ __pycache__/
 result_*/
 *.dot
 *.jpg
+*.png
+
