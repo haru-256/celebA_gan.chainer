@@ -109,7 +109,7 @@ class Generator(chainer.Chain):
            batchsize indicate len(z)
 
         """
-        return np.random.uniform(-1, 1, (batchsize, self.n_hidden, 1, 1))\
+        return np.random.normal(0, 1, (batchsize, self.n_hidden, 1, 1))\
                         .astype(np.float32)
 
     def __call__(self, z):
