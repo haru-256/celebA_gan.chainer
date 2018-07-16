@@ -51,7 +51,7 @@ if __name__ == '__main__':
                         type=int, default=64)
     parser.add_argument('-g', '--gpu', help='specify gpu by this number. defalut value is 0',
                         choices=[0, 1], type=int, default=0)
-    parser.add_argument('-ks', '--ksiz',
+    parser.add_argument('-ks', '--ksize',
                         help='specify kernel size of generator by this number. any of following;'
                         '4 or 6. d defalut value is 4',
                         choices=[4, 6], type=int, default=4)
@@ -140,7 +140,7 @@ if __name__ == '__main__':
         iterator=train_iter,
         optimizer={
             'gen': opt_gen,
-            'critic': critic
+            'critic': opt_critic
         },
         device=gpu,
         n_critic=args.n_critic,
@@ -166,7 +166,7 @@ if __name__ == '__main__':
     trainer.extend(extensions.LogReport())
     trainer.extend(
         extensions.PrintReport([
-            'epoch', 'iteration', 'gen/loss', 'dis/loss', 'elapsed_time',
+            'epoch', 'iteration', 'gen/loss', 'critic/loss', 'elapsed_time',
         ]),
         trigger=display_interval)
     trainer.extend(extensions.ProgressBar(update_interval=20))
@@ -175,12 +175,12 @@ if __name__ == '__main__':
         trigger=display_interval)
     trainer.extend(
         extensions.PlotReport(
-            ['gen/loss', 'dis/loss'],
+            ['gen/loss', 'critic/loss'],
             x_key='epoch',
             file_name='loss_{0}_{1}.jpg'.format(number, seed),
             grid=False))
     trainer.extend(extensions.dump_graph("gen/loss", out_name="gen.dot"))
-    trainer.extend(extensions.dump_graph("dis/loss", out_name="dis.dot"))
+    trainer.extend(extensions.dump_graph("critic/loss", out_name="dis.dot"))
 
     # Run the training
     trainer.run()

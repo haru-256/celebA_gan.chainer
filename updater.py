@@ -1,6 +1,7 @@
 import chainer
 from chainer import Variable
 import chainer.functions as F
+from chainer.backends import cuda
 
 
 class DCGANUpdater(chainer.training.updaters.StandardUpdater):
