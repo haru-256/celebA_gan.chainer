@@ -20,9 +20,12 @@ class Critic(chainer.Chain):
     pad: int
         padding size. if ksize is 4, then pad has to be 1.
         if ksize is 5, then pad has to be 2.
+
+    nobias: boolean
+        whether don't apply bias to convolution layer with no BN layer.
     """
 
-    def __init__(self, ksize=4, pad=1):
+    def __init__(self, ksize=4, pad=1, nobias=True):
         super(Critic, self).__init__()
         print("Critic")
         with self.init_scope():
@@ -39,7 +42,7 @@ class Critic(chainer.Chain):
                 pad=pad,
                 stride=2,
                 initialW=conv_init,
-                nobias=True
+                nobias=nobias
             )
             self.c1 = L.Convolution2D(
                 in_channels=None,
@@ -75,7 +78,7 @@ class Critic(chainer.Chain):
                 pad=0,
                 stride=1,
                 initialW=conv_init,
-                nobias=True
+                nobias=nobias
             )
 
             self.bn1 = L.BatchNormalization(

@@ -52,7 +52,7 @@ def out_generated_image(gen, rows, cols, seed, dst):
             preview_dir.mkdir()
         axes.set_title("epoch: {}".format(trainer.updater.epoch), fontsize=18)
         fig.tight_layout()
-        fig.savefig(preview_path)
+        fig.savefig(preview_path, bbox_inches="tight", pad_inches=0.0)
         plt.close(fig)
 
     return make_image

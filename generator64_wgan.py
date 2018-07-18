@@ -23,11 +23,12 @@ class Generator(chainer.Chain):
        Channel when converting the output of the first layer
        to the 4-dimensional tensor
 
-    Attributes
-    ---------------------
+    nobias: boolean
+       whether don't apply bias to convolution layer with no BN layer.
+
     """
 
-    def __init__(self, n_hidden=100, bottom_width=4, ch=512, ksize=4, pad=1):
+    def __init__(self, n_hidden=100, bottom_width=4, ch=512, ksize=4, pad=1, nobias=True):
         super(Generator, self).__init__()
         self.n_hidden = n_hidden
         self.ch = ch
@@ -78,7 +79,7 @@ class Generator(chainer.Chain):
                 stride=2,
                 pad=pad,
                 initialW=transposed_conv_init,
-                nobias=True)  # (, 3, 64, 64)
+                nobias=nobias)  # (, 3, 64, 64)
 
             self.bn0 = L.BatchNormalization(
                 ch,

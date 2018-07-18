@@ -65,6 +65,9 @@ if __name__ == '__main__':
     parser.add_argument('-c_u', '--clip_upper',
                         help='specify upper of clip range by this number.',
                         type=float, default=0.01)
+    parser.add_argument('-nb', '--nobias',
+                        help='whether do\'t apply bias to convolution layer with no bias.',
+                        action='store_false')
     parser.add_argument('-V', '--version', version='%(prog)s 1.0.0',
                         action='version',
                         default=False)
@@ -102,6 +105,7 @@ if __name__ == '__main__':
     print('# seed: {}'.format(seed))
     print('# ksize: {}'.format(args.ksize))
     print('# pad: {}'.format(pad))
+    print('# nobias: {}'.format(args.nobias))
 
     # fix seed
     np.random.seed(seed)
@@ -111,8 +115,9 @@ if __name__ == '__main__':
     print('')
 
     # Set up a generator, critic
-    gen = Generator(n_hidden=n_hidden, ksize=args.ksize, pad=pad)
-    critic = Critic(ksize=args.ksize, pad=pad)
+    gen = Generator(n_hidden=n_hidden, ksize=args.ksize,
+                    pad=pad, nobias=args.nobias)
+    critic = Critic(ksize=args.ksize, pad=pad, nobias=args.nobias)
 
     if gpu >= 0:
         # Make a specified GPU current
@@ -171,7 +176,7 @@ if __name__ == '__main__':
         trigger=display_interval)
     trainer.extend(extensions.ProgressBar(update_interval=20))
     trainer.extend(
-        out_generated_image(gen, 7, 7, seed, out),
+        out_generated_image(gen, 5, 5, seed, out),
         trigger=display_interval)
     trainer.extend(
         extensions.PlotReport(
@@ -180,7 +185,7 @@ if __name__ == '__main__':
             file_name='loss_{0}_{1}.jpg'.format(number, seed),
             grid=False))
     trainer.extend(extensions.dump_graph("gen/loss", out_name="gen.dot"))
-    trainer.extend(extensions.dump_graph("critic/loss", out_name="dis.dot"))
+    trainer.extend(extensions.dump_graph("critic/loss", out_name="critic.dot"))
 
     # Run the training
     trainer.run()
